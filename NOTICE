@@ -1,0 +1,11 @@
+Canvas Reader depends on canvas-mcp version 1.13.0, distributed under the MIT
+License by the canvas-mcp contributors.
+
+Upstream project: https://github.com/vishalsachdev/canvas-mcp
+
+Upstream Canvas tools are supplied by the installed dependency. This package
+does not vendor its virtual environment or credentials. Dependency licenses
+remain applicable to their respective packages.
+
+Canvas Reader is not affiliated with or endorsed by Instructure, OpenAI or
+Anthropic. Canvas is a trademark of Instructure.

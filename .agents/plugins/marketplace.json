@@ -1,0 +1,20 @@
+{
+  "name": "canvas-reader",
+  "interface": {
+    "displayName": "Canvas Reader"
+  },
+  "plugins": [
+    {
+      "name": "canvas-reader",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

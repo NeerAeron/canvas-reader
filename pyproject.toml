@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "canvas-reader"
+dynamic = ["version"]
+description = "Read-only Canvas MCP with deadlines, document extraction and student workflows"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Neer Aeron" }]
+dependencies = [
+  "canvas-mcp==1.13.0",
+  "httpx>=0.28.1,<1",
+  "pypdf[crypto]>=5,<7",
+  "lxml>=5,<7",
+  "python-dotenv>=1.2.2,<2",
+]
+
+[project.optional-dependencies]
+# The test suite builds Word fixtures with python-docx.
+test = ["python-docx>=1.1,<2"]
+
+[project.scripts]
+canvas-reader = "canvas_reader.server:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "canvas_reader.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

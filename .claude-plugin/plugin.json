@@ -1,0 +1,47 @@
+{
+  "name": "canvas-reader",
+  "version": "0.4.0",
+  "description": "Read-only access to your own Canvas: deadlines, assignments, grades, announcements, Inbox, syllabi and course files, with source links. Runs on your Mac with your own Canvas token.",
+  "author": {
+    "name": "Neer Aeron"
+  },
+  "homepage": "https://github.com/NeerAeron/canvas-reader",
+  "repository": "https://github.com/NeerAeron/canvas-reader",
+  "license": "MIT",
+  "keywords": [
+    "canvas",
+    "lms",
+    "student",
+    "deadlines",
+    "assignments",
+    "mcp"
+  ],
+  "mcpServers": {
+    "canvas-reader": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/scripts/launch.sh",
+      "env": {
+        "CANVAS_API_URL": "${user_config.canvas_url}",
+        "CANVAS_API_TOKEN": "${user_config.canvas_token}",
+        "TIMEZONE": "${user_config.timezone}"
+      }
+    }
+  },
+  "userConfig": {
+    "canvas_url": {
+      "type": "string",
+      "title": "Canvas address",
+      "description": "Your school's Canvas address, such as https://your-school.instructure.com. Leave blank to use ~/.config/canvas-reader/canvas.env."
+    },
+    "canvas_token": {
+      "type": "string",
+      "title": "Canvas access token",
+      "description": "From Canvas > Account > Settings > New access token. Kept in secure storage. Leave blank to use the credential file or the Keychain.",
+      "sensitive": true
+    },
+    "timezone": {
+      "type": "string",
+      "title": "Time zone",
+      "description": "IANA time zone for due dates, such as America/New_York. Leave blank to use the credential file's TIMEZONE, or America/Los_Angeles."
+    }
+  }
+}

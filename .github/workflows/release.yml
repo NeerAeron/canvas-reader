@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  draft:
+    name: Draft release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Check that the tag matches the version
+        run: |
+          version=$(python -c 'import json; print(json.load(open("plugin.json"))["version"])')
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME doesn't match version $version in plugin.json"
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+      - name: Check that dist/ holds this version's release files
+        # Rebuilds in memory and compares, so the release assets are exactly the committed files.
+        run: python scripts/build_plugin.py --check-dist
+      - name: Collect the files and write SHA256SUMS
+        run: |
+          mkdir -p build/release
+          cp "dist/canvas-reader-$VERSION.zip" "dist/canvas-reader-$VERSION.mcpb" build/release/
+          (cd build/release && sha256sum "canvas-reader-$VERSION.zip" "canvas-reader-$VERSION.mcpb" > SHA256SUMS)
+          # dist/ keeps every release; this version's checksums must be committed and agree.
+          if [ ! -f "dist/SHA256SUMS-$VERSION" ]; then
+            echo "::error::dist/SHA256SUMS-$VERSION is missing; run scripts/build_plugin.py --release and commit dist/"
+            exit 1
+          fi
+          diff "dist/SHA256SUMS-$VERSION" build/release/SHA256SUMS
+          cat build/release/SHA256SUMS
+      - name: Take the release notes from CHANGELOG.md
+        run: |
+          python - <<'PY' > build/notes.md
+          import os, re
+          text = open("CHANGELOG.md", encoding="utf-8").read()
+          match = re.search(rf"^## {re.escape(os.environ['VERSION'])}\b.*?\n(.*?)(?=^## |\Z)", text, re.M | re.S)
+          print(match.group(1).strip() if match else "See CHANGELOG.md.")
+          PY
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag
+          --title "Canvas Reader $VERSION" --notes-file build/notes.md
+          build/release/canvas-reader-$VERSION.zip build/release/canvas-reader-$VERSION.mcpb build/release/SHA256SUMS

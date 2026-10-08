@@ -1,0 +1,20 @@
+.env
+.env.*
+!.env.example
+.venv/
+.tools/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.cache/
+build/
+# dist/ is tracked: it keeps every release (zip, .mcpb, SHA256SUMS-X.Y.Z) and source snapshots.
+.DS_Store
+.app.json
+tunnel*.json
+tunnel*.yaml
+tunnel*.yml
+.tunnel/

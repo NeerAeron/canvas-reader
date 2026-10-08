@@ -1,0 +1,18 @@
+{
+  "name": "canvas-reader",
+  "owner": {
+    "name": "Neer Aeron",
+    "url": "https://github.com/NeerAeron"
+  },
+  "metadata": {
+    "description": "Canvas Reader: read-only access to your own Canvas account from Claude."
+  },
+  "plugins": [
+    {
+      "name": "canvas-reader",
+      "source": "./",
+      "description": "Read-only access to your own Canvas: deadlines, assignments, grades, announcements, Inbox, syllabi and course files, with source links.",
+      "category": "productivity"
+    }
+  ]
+}

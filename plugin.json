@@ -1,0 +1,42 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "canvas-reader",
+  "version": "0.4.0",
+  "description": "Read Canvas deadlines, assignments, submission status, syllabi, lecture slides and course documents with source links.",
+  "author": {
+    "name": "Neer Aeron"
+  },
+  "homepage": "https://github.com/NeerAeron/canvas-reader",
+  "repository": "https://github.com/NeerAeron/canvas-reader",
+  "license": "MIT",
+  "keywords": [
+    "canvas",
+    "courses",
+    "assignments",
+    "syllabi",
+    "student"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Canvas Reader",
+        "shortDescription": "Canvas deadlines & documents",
+        "longDescription": "Read Canvas courses, deadlines, assignments, submission status, syllabi, pages, lecture slides and documents. Summarize course materials and find information with links to the original Canvas sources.",
+        "logo": "./assets/icon-light.png",
+        "logoDark": "./assets/icon-dark.png",
+        "composerIcon": "./assets/icon-light.png",
+        "composerIconDark": "./assets/icon-dark.png",
+        "brandColor": "#1D3557",
+        "category": "Productivity",
+        "websiteURL": "https://github.com/NeerAeron/canvas-reader",
+        "capabilities": [
+          "Read"
+        ],
+        "defaultPrompt": [
+          "What's due in the next 7 days? Include due times, status and Canvas links.",
+          "Read my syllabus and collect the grading policy and key deadlines."
+        ]
+      }
+    }
+  }
+}

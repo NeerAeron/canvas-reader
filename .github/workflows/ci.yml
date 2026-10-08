@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        python: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: python -m pip install --disable-pip-version-check -c constraints.txt -e ".[test]"
+      - name: Test
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m unittest discover -s tests
+      - name: Build the release files
+        run: python scripts/build_plugin.py --mcpb --output-dir build/release
+
+  versions-py39:
+    # scripts/versions.py must keep working on the Python 3.9 that ships with macOS.
+    name: versions.py on Python 3.9
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.9"
+      - name: Test the version manager
+        env:
+          PYTHONDONTWRITEBYTECODE: "1"
+        run: python -m unittest discover -s tests -p test_versions.py
+
+  manifests:
+    name: Plugin and extension manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Validate the Claude Code marketplace and plugin
+        env:
+          # A throwaway configuration; validation needs no account or secrets.
+          CLAUDE_CONFIG_DIR: ${{ runner.temp }}/claude
+        run: |
+          npx --yes @anthropic-ai/claude-code@2.1.288 plugin validate --strict .
+          npx --yes @anthropic-ai/claude-code@2.1.288 plugin validate --strict .claude-plugin/plugin.json
+      - name: Validate the Claude Desktop extension
+        run: |
+          python scripts/build_plugin.py --mcpb --output-dir build/release
+          mkdir -p build/mcpb
+          unzip -q build/release/canvas-reader-*.mcpb -d build/mcpb
+          npx --yes @anthropic-ai/mcpb@2.1.2 validate build/mcpb/manifest.json

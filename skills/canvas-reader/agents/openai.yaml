@@ -1,0 +1,7 @@
+interface:
+  display_name: "Canvas Reader"
+  short_description: "Canvas deadlines, course files and syllabi"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.png"
+  brand_color: "#1D3557"
+  default_prompt: "Use $canvas-reader to show what's due in the next 7 days with due times, submission status and Canvas links."

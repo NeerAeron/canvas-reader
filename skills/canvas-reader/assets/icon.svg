@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>Canvas Reader</title>
+  <!-- Original artwork: a stack of course pages with a Canvas-red bookmark and a check.
+       No Canvas or Instructure emblem (no ring, dots or circles). Light variant. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22406A"/>
+      <stop offset="1" stop-color="#16294A"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#tile)"/>
+  <rect x="176" y="96" width="220" height="292" rx="28" fill="#7F9BBE" transform="rotate(8 286 242)"/>
+  <rect x="120" y="116" width="236" height="306" rx="28" fill="#FFFFFF"/>
+  <g stroke="#B9C8DC" stroke-width="18" stroke-linecap="round">
+    <path d="M160 214H252"/>
+    <path d="M160 262H262"/>
+    <path d="M160 310H240"/>
+    <path d="M160 358H212"/>
+  </g>
+  <path d="M286 92H350V292L318 262L286 292Z" fill="#E0262F"/>
+  <path d="M300 150L314 164L338 138" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
