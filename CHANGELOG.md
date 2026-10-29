@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- `scripts/tunnel.sh --store-key` saved only the first 128 characters of the
+  OpenAI runtime key: the Keychain tool's own hidden prompt stops there, and
+  OpenAI keys are longer. The tunnel then failed to sign in with
+  `401 invalid_api_key`. The helper now reads the key itself (hidden, twice),
+  checks that it starts with `sk-`, and passes it to the Keychain on stdin
+  without the limit. If you saved a key with 0.4.0, save it again.
+
 ## 0.4.0 (2026-10-02)
 
 The first public release: one runtime on your Mac, with setup guides for

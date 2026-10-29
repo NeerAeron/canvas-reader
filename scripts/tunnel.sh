@@ -44,11 +44,33 @@ keychain_available() { [ -x "$security_bin" ]; }
 case "$1" in
   --store-key)
     keychain_available || fail 'The macOS Keychain tool is unavailable here; export CONTROL_PLANE_API_KEY instead.'
-    printf 'Paste the OpenAI runtime key when asked, twice. Typing stays hidden.\n'
-    "$security_bin" add-generic-password -U -a "${USER:-canvas-reader}" -s "$keychain_service" \
-      -l 'Canvas Reader tunnel runtime key' -w
-    printf 'Saved in your login Keychain as "%s".\n' "$keychain_service"
-    exit 0
+    # Read the key here rather than at the security tool's own prompt: that prompt (getpass) keeps
+    # only the first 128 characters, and OpenAI keys are longer. The key reaches the tool on stdin
+    # through its command mode (-i), never as an argument.
+    printf 'Paste the whole OpenAI runtime key, starting with sk-, when asked, twice. Typing stays hidden.\n'
+    read -rs -p 'Key: ' canvas_reader_key || true
+    printf '\n'
+    read -rs -p 'Again: ' canvas_reader_again || true
+    printf '\n'
+    [ "$canvas_reader_key" = "$canvas_reader_again" ] || fail 'The two entries differ. Nothing was saved.'
+    unset canvas_reader_again
+    case "$canvas_reader_key" in
+      '') fail 'No key was entered. Nothing was saved.' ;;
+      *[[:space:]]*) fail 'The key contains spaces or line breaks; paste only the key. Nothing was saved.' ;;
+      sk-?*) ;;
+      *) fail 'OpenAI keys start with sk-; paste the whole key, including sk-. Nothing was saved.' ;;
+    esac
+    # Double quotes and backslashes are escaped for the tool's command parser.
+    keychain_quote() { local value=${1//\\/\\\\}; value=${value//\"/\\\"}; printf '"%s"' "$value"; }
+    if printf 'add-generic-password -U -a %s -s %s -l %s -w %s\n' "$(keychain_quote "${USER:-canvas-reader}")" \
+        "$(keychain_quote "$keychain_service")" "$(keychain_quote 'Canvas Reader tunnel runtime key')" \
+        "$(keychain_quote "$canvas_reader_key")" | "$security_bin" -i; then
+      unset canvas_reader_key
+      printf 'Saved in your login Keychain as "%s".\n' "$keychain_service"
+      exit 0
+    fi
+    unset canvas_reader_key
+    fail 'The key was not saved.'
     ;;
   --forget-key)
     keychain_available || fail 'The macOS Keychain tool is unavailable here.'
