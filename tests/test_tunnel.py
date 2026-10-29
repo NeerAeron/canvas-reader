@@ -34,15 +34,17 @@ class TunnelHelperTests(unittest.TestCase):
         self.security = self.directory / "security"
         self.security.write_text(
             "#!/usr/bin/env python3\n"
-            "import json, os, sys\n"
+            "import json, os, shlex, sys\n"
             "from pathlib import Path\n"
             "store = Path(os.environ['FAKE_KEYCHAIN'])\n"
             "data = json.loads(store.read_text()) if store.exists() else {}\n"
             "args = sys.argv[1:]\n"
             "Path(str(store) + '.argv').write_text(json.dumps(args))\n"
+            "if args == ['-i']:  # command mode: one command per stdin line, with quoting\n"
+            "    args = shlex.split(sys.stdin.readline())\n"
             "service = args[args.index('-s') + 1]\n"
             "if args[0] == 'add-generic-password':\n"
-            "    data[service] = sys.stdin.readline().strip()\n"
+            "    data[service] = args[args.index('-w') + 1]\n"
             "elif service not in data:\n"
             "    sys.exit(44)\n"
             "elif args[0] == 'find-generic-password' and '-w' in args:\n"
@@ -169,21 +171,41 @@ class TunnelHelperTests(unittest.TestCase):
         env = dict(self.env, CANVAS_READER_SECURITY_BIN=str(self.security))
         env.pop("CONTROL_PLANE_API_KEY")
         self.assertIn("missing", self.run_helper("--status", env=env).stdout)
-        result = self.run_helper("--store-key", env=env, stdin="runtime-from-keychain\n")
+        # Longer than the 128 characters the security tool's own prompt keeps; OpenAI keys are.
+        key = "sk-proj-" + "runtime_from-keychain" * 8
+        result = self.run_helper("--store-key", env=env, stdin=f" {key}\n{key}\n")
         self.assertEqual(result.returncode, 0, result.stderr)
         argv = json.loads(Path(str(self.keychain) + ".argv").read_text())
-        self.assertEqual(argv[-1], "-w")  # the key is typed at the prompt, never passed as an argument
-        self.assertNotIn("runtime-from-keychain", json.dumps(argv) + result.stdout + result.stderr)
+        self.assertEqual(argv, ["-i"])  # the key arrives on stdin, never as an argument
+        self.assertNotIn(key, result.stdout + result.stderr)
         self.assertIn("saved in Keychain", self.run_helper("--status", env=env).stdout)
         result = self.run_helper("--run", env=env)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(Path(str(self.capture) + ".key").read_text(), "runtime-from-keychain")
-        self.assertNotIn("runtime-from-keychain", result.stdout + result.stderr)
+        self.assertEqual(Path(str(self.capture) + ".key").read_text(), key)
+        self.assertNotIn(key, result.stdout + result.stderr)
         self.assertIn("Keychain", result.stderr)
         self.assertEqual(self.run_helper("--forget-key", env=env).returncode, 0)
         result = self.run_helper("--run", env=env)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("--store-key", result.stderr)
+
+    def test_store_key_rejects_mistyped_or_partial_keys(self):
+        env = dict(self.env, CANVAS_READER_SECURITY_BIN=str(self.security))
+        for stdin, expected in (("sk-one\nsk-two\n", "differ"), ("\n\n", "No key"),
+                                ("proj-abc\nproj-abc\n", "start with sk-"), ("sk-a b\nsk-a b\n", "spaces")):
+            with self.subTest(stdin=stdin):
+                result = self.run_helper("--store-key", env=env, stdin=stdin)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(expected, result.stderr)
+                self.assertIn("Nothing was saved", result.stderr)
+                self.assertFalse(self.keychain.exists())
+
+    def test_store_key_escapes_quotes_for_the_keychain_tool(self):
+        env = dict(self.env, CANVAS_READER_SECURITY_BIN=str(self.security), CANVAS_READER_KEYCHAIN_SERVICE='odd"\\name')
+        key = 'sk-"quoted"\\key'
+        result = self.run_helper("--store-key", env=env, stdin=f"{key}\n{key}\n")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(self.keychain.read_text()), {'odd"\\name': key})
 
     def test_environment_key_wins_over_keychain(self):
         self.keychain.write_text(json.dumps({"canvas-reader-tunnel": "keychain-value"}))

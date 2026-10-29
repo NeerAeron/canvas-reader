@@ -46,8 +46,8 @@ Store it in your login Keychain:
 scripts/tunnel.sh --store-key
 ```
 
-Paste the key at both hidden prompts. `--run` and `--doctor` load it from the
-Keychain, and `--forget-key` removes it. Never paste it into a chat or a plugin
+Paste the whole key, starting with `sk-`, at both hidden prompts. `--run` and
+`--doctor` load it from the Keychain, and `--forget-key` removes it. Never paste it into a chat or a plugin
 file. An exported `CONTROL_PLANE_API_KEY` takes priority if you prefer your own
 secret manager.
 
@@ -153,7 +153,7 @@ changed, select **Refresh** on the connection in ChatGPT.
 | --- | --- |
 | "Install tunnel-client" | `brew install openai/tools/tunnel-client` |
 | "No OpenAI runtime key" | `scripts/tunnel.sh --store-key` |
-| Doctor passes but running fails to sign in | The key is invalid or lacks tunnel access; check its organization and permissions. |
+| Doctor passes but running fails to sign in (`401` or `invalid_api_key`) | The key is wrong, revoked or cut off. Save the whole key again with `scripts/tunnel.sh --store-key` (0.4.0 kept only its first 128 characters). Then check its organization and Tunnels permissions. |
 | Tunnel missing in ChatGPT | Check the workspace link, Tunnels Read + Use, and developer mode. |
 | Calls time out | The Mac is asleep or the tunnel stopped; restart `--run`. |
 | Old tools still listed | Restart the tunnel, then **Refresh** the connection in ChatGPT. |
